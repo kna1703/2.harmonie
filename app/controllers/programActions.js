@@ -23,9 +23,6 @@ const programs = [
   },
 ];
 
-// Declare the action
-
-
 const browse = (req, res) => {
   if (req.query.q != null) {
     const filteredPrograms = programs.filter((program) =>
