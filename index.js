@@ -1,28 +1,31 @@
-// Load environment variables from .env file
+// Import the repository modules responsible for handling data operations on the tables
+const ItemRepository = require("./database/models/ItemRepository");
+const CategoryRepository = require("./database/models/CategoryRepository");
+const ProgramRepository = require("./database/models/ProgramRepository");
+// Create an empty object to hold data repositories for different tables
+const tables = {};
 
-require("dotenv").config();
+/* ************************************************************************* */
+// Register data repositories for tables
+/* ************************************************************************* */
 
-// Check database connection
-// Note: This is optional and can be removed if the database connection
-// is not required when starting the application
+// Register each repository as data access point for its table
+tables.item = new ItemRepository();
+tables.category = new CategoryRepository();
+tables.program = new ProgramRepository();
+/* ************************************************************************* */
 
-require("./database/client").checkConnection();
+// Use a Proxy to customize error messages when trying to access a non-existing table
 
-// Import the Express application from app/config.js
+// Export the Proxy instance with custom error handling
+module.exports = new Proxy(tables, {
+  get(obj, prop) {
+    // Check if the property (table) exists in the tables object
+    if (prop in obj) return obj[prop];
 
-const app = require("./app/config");
-
-// Get the port from the environment variables
-
-const port = process.env.APP_PORT;
-
-
-// Start the server and listen on the specified port
-
-app
-  .listen(port, () => {
-    console.info(`Server is listening on port ${port}`);
-  })
-  .on("error", (err) => {
-    console.error("Error:", err.message);
-  });
+    // If the property (table) does not exist, throw a ReferenceError with a custom error message
+    throw new ReferenceError(
+      `tables.${prop} is not defined. Did you register it in ${__filename}?`
+    );
+  },
+});
